@@ -33,10 +33,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Calendar> _calendars = List.generate(
-    1,
-    (index) => Calendar(name: 'Calendar $index'),
-  );
+  final List<Calendar> _calendars = [];
   final ScrollController _scrollController = ScrollController();
 
   void _addCalendar() {
