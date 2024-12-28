@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'calendar.dart';
+import 'calendar/calendar.dart';
 
 class ConfigureCalendarScreen extends StatefulWidget {
   final Calendar calendar;
@@ -8,7 +8,7 @@ class ConfigureCalendarScreen extends StatefulWidget {
   const ConfigureCalendarScreen({super.key, required this.calendar, required this.onSave});
 
   @override
-  _ConfigureCalendarScreenState createState() => _ConfigureCalendarScreenState();
+  State<ConfigureCalendarScreen> createState() => _ConfigureCalendarScreenState();
 }
 
 class _ConfigureCalendarScreenState extends State<ConfigureCalendarScreen> {

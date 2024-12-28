@@ -1,18 +1,5 @@
 import 'package:flutter/material.dart';
-
-class Calendar {
-  String name;
-  String smsMessageText;
-  String smsConfirmationText;
-  String appendText;
-
-  Calendar({
-    required this.name,
-    this.smsMessageText = 'Aby potwierdzić wizytę, odpowiedz „TAK” na tę wiadomość.',
-    this.smsConfirmationText = 'TAK',
-    this.appendText = '[P]',
-  });
-}
+import 'calendar.dart';
 
 class CalendarWidget extends StatelessWidget {
   final Calendar calendar;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'calendar.dart';
+import 'calendar/calendar.dart';
+import 'calendar/google_calendar.dart';
+import 'calendar/calendar_widget.dart';
 import 'configure_calendar_screen.dart';
 
 void main() {
@@ -34,12 +36,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Calendar> _calendars = [];
+
   final ScrollController _scrollController = ScrollController();
 
   void _addCalendar() {
     setState(() {
       final newIndex = _calendars.length;
-      _calendars.add(Calendar(name: 'Calendar $newIndex'));
+      _calendars.add(GoogleCalendar(name: 'Google Calendar $newIndex'));
     });
     _scrollToBottom();
   }
