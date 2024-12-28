@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'calendar/calendar.dart';
-import 'calendar/google_calendar.dart';
-import 'calendar/calendar_widget.dart';
-import 'configure_calendar_screen.dart';
+import 'package:googleapis/calendar/v3.dart' as google_calendar;
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const title = 'Automatic SMS';
+    const title = 'Google Calendar Events';
     return MaterialApp(
       title: title,
       theme: ThemeData(
@@ -35,72 +35,99 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Calendar> _calendars = [];
+  final _formKey = GlobalKey<FormState>();
+  final _messageController = TextEditingController();
+  final _confirmationTextController = TextEditingController();
+  final _appendTextController = TextEditingController();
 
-  final ScrollController _scrollController = ScrollController();
+  static const _scopes = [google_calendar.CalendarApi.calendarScope];
 
-  void _addCalendar() {
+  google_calendar.CalendarApi? _calendarApi;
+
+  Future<void> _authenticateWithGoogle() async {
+    final googleSignIn = GoogleSignIn(scopes: _scopes);
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      // The user canceled the sign-in
+      return;
+    }
+
+    final googleAuth = await googleUser.authentication;     
+    final client = authenticatedClient(http.Client(), AccessCredentials(
+      AccessToken('Bearer', googleAuth.accessToken!, DateTime.now().add(Duration(seconds: googleAuth.expiresIn!))),
+      googleAuth.refreshToken!,
+      _scopes,
+    ));
+
     setState(() {
-      final newIndex = _calendars.length;
-      _calendars.add(GoogleCalendar(name: 'Google Calendar $newIndex'));
+      _calendarApi = google_calendar.CalendarApi(client);
     });
-    _scrollToBottom();
+    _showCalendarList();
   }
 
-  void _deleteCalendar(int index) {
-    setState(() {
-      _calendars.removeAt(index);
-    });
-  }
+  Future<void> _showCalendarList() async {
+    if (_calendarApi == null) return;
 
-  void _confirmDeleteCalendar(int index) {
+    final calendars = await _calendarApi!.calendarList.list();
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Delete'),
-          content: const Text('Are you sure you want to delete this calendar?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
+          title: const Text('Select a Calendar'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: calendars.items?.length ?? 0,
+              itemBuilder: (context, index) {
+                final calendar = calendars.items![index];
+                return ListTile(
+                  title: Text(calendar.summary ?? 'Unnamed Calendar'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _showEventsForNextDay(calendar.id!);
+                  },
+                );
               },
-              child: const Text('Cancel'),
             ),
-            TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              onPressed: () {
-                _deleteCalendar(index);
-                Navigator.of(context).pop();
-              },
-              child: const Text('Delete', style: TextStyle(color: Colors.white),),
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
-  void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-  }
+  Future<void> _showEventsForNextDay(String calendarId) async {
+    if (_calendarApi == null) return;
 
-  void _configureCalendar(Calendar calendar) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ConfigureCalendarScreen(
-          calendar: calendar,
-          onSave: () {
-            setState(() {});
-          },
-        ),
-      ),
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final events = await _calendarApi!.events.list(
+      calendarId,
+      timeMin: tomorrow,
+      timeMax: tomorrow.add(const Duration(days: 1)),
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Events for Tomorrow'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: events.items?.length ?? 0,
+              itemBuilder: (context, index) {
+                final event = events.items![index];
+                return ListTile(
+                  title: Text(event.summary ?? 'Unnamed Event'),
+                  subtitle: Text(event.start?.dateTime?.toString() ?? 'No start time'),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -111,21 +138,51 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-        controller: _scrollController,
-        itemCount: _calendars.length,
-        itemBuilder: (context, index) {
-          return CalendarWidget(
-            calendar: _calendars[index],
-            onDelete: () => _confirmDeleteCalendar(index),
-            onConfigure: () => _configureCalendar(_calendars[index]),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addCalendar,
-        tooltip: 'Add new calendar.',
-        child: const Icon(Icons.add),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _messageController,
+                decoration: const InputDecoration(labelText: 'Message'),
+                maxLines: 5,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a message';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _confirmationTextController,
+                decoration: const InputDecoration(labelText: 'Confirmation Text'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter confirmation text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _appendTextController,
+                decoration: const InputDecoration(labelText: 'Text to Append'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter text to append';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _authenticateWithGoogle,
+                child: const Text('Google'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
