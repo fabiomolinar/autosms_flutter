@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:googleapis/calendar/v3.dart' as google_calendar;
-import 'package:googleapis_auth/auth_io.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const title = 'Google Calendar Events';
+    const title = 'Automated SMS';
     return MaterialApp(
       title: title,
       theme: ThemeData(
@@ -35,100 +32,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // Form attributes
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
   final _confirmationTextController = TextEditingController();
   final _appendTextController = TextEditingController();
 
-  static const _scopes = [google_calendar.CalendarApi.calendarScope];
-
-  google_calendar.CalendarApi? _calendarApi;
-
-  Future<void> _authenticateWithGoogle() async {
-    final googleSignIn = GoogleSignIn(scopes: _scopes);
-    final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      // The user canceled the sign-in
-      return;
+  // Form text validator
+  String? _formTextValidator(String? value, String errorMessage) {
+    if (value == null || value.isEmpty) {
+      return errorMessage;
     }
-
-    final googleAuth = await googleUser.authentication;     
-    final client = authenticatedClient(http.Client(), AccessCredentials(
-      AccessToken('Bearer', googleAuth.accessToken!, DateTime.now().add(Duration(seconds: googleAuth.expiresIn!))),
-      googleAuth.refreshToken!,
-      _scopes,
-    ));
-
-    setState(() {
-      _calendarApi = google_calendar.CalendarApi(client);
-    });
-    _showCalendarList();
+    return null;
   }
 
-  Future<void> _showCalendarList() async {
-    if (_calendarApi == null) return;
-
-    final calendars = await _calendarApi!.calendarList.list();
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select a Calendar'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: calendars.items?.length ?? 0,
-              itemBuilder: (context, index) {
-                final calendar = calendars.items![index];
-                return ListTile(
-                  title: Text(calendar.summary ?? 'Unnamed Calendar'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _showEventsForNextDay(calendar.id!);
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _showEventsForNextDay(String calendarId) async {
-    if (_calendarApi == null) return;
-
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final events = await _calendarApi!.events.list(
-      calendarId,
-      timeMin: tomorrow,
-      timeMax: tomorrow.add(const Duration(days: 1)),
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Events for Tomorrow'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: events.items?.length ?? 0,
-              itemBuilder: (context, index) {
-                final event = events.items![index];
-                return ListTile(
-                  title: Text(event.summary ?? 'Unnamed Event'),
-                  subtitle: Text(event.start?.dateTime?.toString() ?? 'No start time'),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
+  // Form on pressed
+  void _formOnPressed() {
+    if (_formKey.currentState!.validate()) {
+      print('Form is valid');
+    }
   }
 
   @override
@@ -148,37 +70,32 @@ class _MyHomePageState extends State<MyHomePage> {
                 controller: _messageController,
                 decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a message';
-                  }
-                  return null;
-                },
+                validator: _formTextValidator(value, 'Please enter a message'),
               ),
               TextFormField(
                 controller: _confirmationTextController,
                 decoration: const InputDecoration(labelText: 'Confirmation Text'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter confirmation text';
-                  }
-                  return null;
-                },
+                validator: _formTextValidator(value, 'Please enter confirmation text'),
               ),
               TextFormField(
                 controller: _appendTextController,
                 decoration: const InputDecoration(labelText: 'Text to Append'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter text to append';
-                  }
-                  return null;
-                },
+                validator: _formTextValidator(value, 'Please enter text to append to event'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _authenticateWithGoogle,
-                child: const Text('Google'),
+                onPressed: _formOnPressed()
+                child: [
+                  const Icon(FontAwesomeIcons.google),
+                  const Text('   Google'),
+                ],
+              ),
+              ElevatedButton(
+                onPressed: _formOnPressed(),
+                child: [
+                  const Icon(FontAwesomeIcons.microsoft),
+                  const Text('   Outlook'),
+                ],
               ),
             ],
           ),
