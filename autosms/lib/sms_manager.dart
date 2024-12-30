@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
 import 'package:another_telephony/telephony.dart';
 import 'utils.dart' show MySimpleDialog;
 
@@ -12,17 +11,12 @@ class SMS {
 
 Future<void> sendAllSMS(List<SMS> messages) async {
   for (var sms in messages) {
-    await () async {
-      try {
-        String result = await sendSMS(
-          message: sms.message,
-          recipients: [sms.telephoneNumber],
-        );
-        print(result); // ignore: avoid_print
-      } catch (error) {
-        print('Failed to send SMS: $error'); // ignore: avoid_print
-      }
-    }();
+    final telephony = Telephony.instance;
+    try {
+      await telephony.sendSms(to: sms.telephoneNumber, message: sms.message);
+    } catch (error) {
+      print('Failed to send SMS: $error'); // ignore: avoid_print
+    }
   }
 }
 
