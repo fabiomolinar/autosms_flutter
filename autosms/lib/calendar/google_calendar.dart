@@ -87,7 +87,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
       timeMax: tomorrow.toUtc(),
     );
 
-    List<CalendarEvent> calendarEvents = events.items?.where((event) => event.start?.dateTime != null).map((event) {
+    _events = events.items?.where((event) => event.start?.dateTime != null).map((event) {
       return CalendarEvent(
         id: event.id!,
         summary: event.summary ?? '',
@@ -98,7 +98,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
     }).toList() ?? [];
 
     List<SMS> smsList = [];
-    for (var event in calendarEvents) {
+    for (var event in _events!) {
       String? phoneNumber = event.findPhoneNumber();
       if (phoneNumber != null) {
         String message = event.createMessage(widget.messageTemplate);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
-import 'package:another_telephony/another_telephony.dart';
+import 'package:another_telephony/telephony.dart';
 import 'utils.dart' show MySimpleDialog;
 
 class SMS {
@@ -27,7 +27,7 @@ Future<void> sendAllSMS(List<SMS> messages) async {
 }
 
 Future<List<SMS>> readAllSMS(BuildContext context, DateTime from, DateTime to) async {
-  final telephony = AnotherTelephony.instance;
+  final telephony = Telephony.instance;
   final bool? permissionGranted = await telephony.requestPhoneAndSmsPermissions;
   if (permissionGranted == false) {
     showDialog(
@@ -39,9 +39,9 @@ Future<List<SMS>> readAllSMS(BuildContext context, DateTime from, DateTime to) a
     List<SmsMessage> messages = await telephony.getInboxSms(
       columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
       filter: SmsFilter.where(SmsColumn.DATE)
-          .greaterThanOrEqualTo(from.millisecondsSinceEpoch)
+          .greaterThanOrEqualTo(from.toIso8601String())
           .and(SmsColumn.DATE)
-          .lessThanOrEqualTo(to.millisecondsSinceEpoch),
+          .lessThanOrEqualTo(to.toIso8601String()),
     );
     return messages.map((sms) {
       return SMS(
