@@ -1,16 +1,14 @@
 # autosms
 
-A new Flutter project.
+A automatic SMS sender/receiver and calendar reader Flutter project.
 
-## Getting Started
+## Build and release on Android
 
-This project is a starting point for a Flutter application.
+### Icons
 
-A few resources to get you started if this is your first Flutter project:
+Run the following commands to set up the icons. Review the flutter icon configuration section (`flutter_launcher_icons`) in the `pubspec.yaml` file if anything need to be updated.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```cmd
+flutter pub get
+dart run flutter_launcher_icons
+```
