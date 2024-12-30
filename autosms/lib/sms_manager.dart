@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:another_telephony/another_telephony.dart';
-import 'utils.dart' show SimpleDialog;
+import 'utils.dart' show MySimpleDialog;
 
 class SMS {
   final String telephoneNumber;
@@ -10,7 +10,7 @@ class SMS {
   SMS({required this.telephoneNumber, required this.message});
 }
 
-Future<void> sendSMS(List<SMS> messages) async {
+Future<void> sendAllSMS(List<SMS> messages) async {
   for (var sms in messages) {
     await () async {
       try {
@@ -26,13 +26,13 @@ Future<void> sendSMS(List<SMS> messages) async {
   }
 }
 
-Future<List<SMS>> readSMS(BuildContext context, DateTime from, DateTime to) async {
+Future<List<SMS>> readAllSMS(BuildContext context, DateTime from, DateTime to) async {
   final telephony = AnotherTelephony.instance;
   final bool? permissionGranted = await telephony.requestPhoneAndSmsPermissions;
   if (permissionGranted == false) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => SimpleDialog(message: message),
+      builder: (BuildContext context) => MySimpleDialog(message: "Permission to read SMS denied."),
     );
     return [];
   } else {
@@ -49,4 +49,5 @@ Future<List<SMS>> readSMS(BuildContext context, DateTime from, DateTime to) asyn
         message: sms.body ?? 'No message',
       );
     }).toList();
+  }
 }

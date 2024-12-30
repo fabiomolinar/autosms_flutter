@@ -1,5 +1,7 @@
 import 'dart:core';
 
+import 'package:intl/intl.dart';
+
 class CalendarType {
   final String name;
   final dynamic calendarInstance;

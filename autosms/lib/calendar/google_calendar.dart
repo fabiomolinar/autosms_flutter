@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'calendar.dart';
-import 'sms_manager.dart';
-import 'utils.dart' show SimpleDialog;
+import '../sms_manager.dart';
+import '../utils.dart' show MySimpleDialog;
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(  
   scopes: <String>[google_calendar.CalendarApi.calendarScope],
@@ -66,13 +66,9 @@ class GoogleCalendarState extends State<GoogleCalendar> {
   // Future<void> _handleSignOut() => _googleSignIn.disconnect(); // NOT USED.
 
   Future<void> _fetchCalendars() async {
-    final authHeaders = await _googleSignIn.currentUser?.authHeaders;
-    if (authHeaders == null) {
-      print('Missing auth headers'); // ignore: avoid_print
-      return;
-    }
-    final client = authenticatedClient(Client(), AccessCredentials.fromHeaders(authHeaders));
-    final calendarApi = google_calendar.CalendarApi(client);
+    final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
+    assert(client != null, 'Authenticated client missing!');
+    final calendarApi = google_calendar.CalendarApi(client!);
     final calendarList = await calendarApi.calendarList.list();
     setState(() {
       _calendars = calendarList.items;
@@ -80,13 +76,9 @@ class GoogleCalendarState extends State<GoogleCalendar> {
   }
 
   Future<void> _fetchEvents(String calendarId) async {
-    final authHeaders = await _googleSignIn.currentUser?.authHeaders;
-    if (authHeaders == null) {
-      print('Missing auth headers'); // ignore: avoid_print
-      return;
-    }
-    final client = authenticatedClient(Client(), AccessCredentials.fromHeaders(authHeaders));
-    final calendarApi = google_calendar.CalendarApi(client);
+    final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
+    assert(client != null, 'Authenticated client missing!');
+    final calendarApi = google_calendar.CalendarApi(client!);
     final now = DateTime.now();
     final tomorrow = now.add(Duration(days: 1));
     final events = await calendarApi.events.list(
@@ -107,7 +99,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
 
     List<SMS> smsList = [];
     for (var event in calendarEvents) {
-      String? phoneNumber = event.findPolishPhoneNumber();
+      String? phoneNumber = event.findPhoneNumber();
       if (phoneNumber != null) {
         String message = event.createMessage(widget.messageTemplate);
         smsList.add(SMS(telephoneNumber: phoneNumber, message: message));
@@ -115,16 +107,16 @@ class GoogleCalendarState extends State<GoogleCalendar> {
     }
 
     if (smsList.isNotEmpty) {
-      await sendSMS(smsList);
-      smsCount = smsList.length;
+      await sendAllSMS(smsList);
+      var smsCount = smsList.length;
       showDialog(
         context: context,
-        builder: (BuildContext context) => SimpleDialog(message: '$smsCount SMS messages were sent.'),
+        builder: (BuildContext context) => MySimpleDialog(message: '$smsCount SMS messages were sent.'),
       );
     } else {
       showDialog(
         context: context,
-        builder: (BuildContext context) => SimpleDialog(message: '0 SMS messages were sent.'),
+        builder: (BuildContext context) => MySimpleDialog(message: '0 SMS messages were sent.'),
       );
     }
   }
@@ -137,7 +129,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
           onPressed: handleSignIn,
           child: const Text('Sign in with Google'),
         ),
-      )
+      );
     } else {
       if (_calendars == null){
         return const Center(
@@ -151,7 +143,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
             return ListTile(
               title: Text(calendar.summary ?? ''),
               subtitle: Text(calendar.id ?? ''),
-              onTap: () => _handleCalendarSelected(calendar.id!),
+              onTap: () => _fetchEvents(calendar.id!),
             );
           },
         );  

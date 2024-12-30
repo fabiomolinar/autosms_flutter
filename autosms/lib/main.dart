@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'calendar/google_calendar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -83,32 +84,38 @@ class _MyHomePageState extends State<MyHomePage> {
                 controller: _messageController,
                 decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 5,
-                validator: _formTextValidator(value, 'Please enter a message. Use "[day]" and "[hour]" symbols to add dynamic text to the message.'),
+                validator: (value) => _formTextValidator(value, 'Please enter a message. Use "[day]" and "[hour]" symbols to add dynamic text to the message.'),
               ),
               TextFormField(
                 controller: _confirmationTextController,
                 decoration: const InputDecoration(labelText: 'Confirmation Text'),
-                validator: _formTextValidator(value, 'Please enter confirmation text'),
+                validator: (value) => _formTextValidator(value, 'Please enter confirmation text'),
               ),
               TextFormField(
                 controller: _appendTextController,
                 decoration: const InputDecoration(labelText: 'Text to Append'),
-                validator: _formTextValidator(value, 'Please enter text to append to event'),
+                validator: (value) => _formTextValidator(value, 'Please enter text to append to event'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _formOnPressed('google'),
-                child: [
-                  const Icon(FontAwesomeIcons.google),
-                  const Text('   Google'),
-                ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(FontAwesomeIcons.google),
+                    const Text('   Google'),
+                  ],
+                ),
               ),
               ElevatedButton(
                 onPressed: () => _formOnPressed('outlook'),
-                child: [
-                  const Icon(FontAwesomeIcons.microsoft),
-                  const Text('   Outlook'),
-                ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(FontAwesomeIcons.microsoft),
+                    const Text('   Outlook'),
+                  ],
+                ),
               ),
             ],
           ),

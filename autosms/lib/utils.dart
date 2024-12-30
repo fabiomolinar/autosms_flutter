@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class SimpleDialog extends StatelessWidget {
+class MySimpleDialog extends StatelessWidget {
   final String message;
 
-  const SimpleDialog({Key? key, required this.message}) : super(key: key);
+  const MySimpleDialog({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
