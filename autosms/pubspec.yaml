@@ -39,6 +39,8 @@ dependencies:
   googleapis_auth: ^1.6.0  
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
   font_awesome_flutter: ^10.8.0
+  another_telephony: ^0.3.0
+  flutter_sms: ^2.3.3
 
 dev_dependencies:
   flutter_test:

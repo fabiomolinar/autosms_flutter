@@ -19,16 +19,26 @@ class GoogleCalendar extends StatefulWidget {
 /// The state of the main widget.
 class GoogleCalendarState extends State<GoogleCalendar> {
   GoogleSignInAccount? _currentUser;
+  List<google_calendar.CalendarListEntry>? _calendars;
   
   @override
   void initState() {
     super.initState();
+    // Set up listener to update user on user change.
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       setState(() {
         _currentUser = account;
       });
+      if (account != null) {
+        _fetchCalendars();
+      }
     });
+    // Try to sign in silently.
     _googleSignIn.signInSilently();
+  }
+
+  bool isSignedIn() {
+    return _currentUser != null;
   }
 
   Future<bool> handleSignIn() async {
@@ -36,6 +46,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
       await _googleSignIn.signIn();
       final GoogleSignInAccount? user = _currentUser;
         if (user != null) {
+          _fetchCalendars();
           return true;
         } else {
           return false;
@@ -48,6 +59,49 @@ class GoogleCalendarState extends State<GoogleCalendar> {
 
   Future<void> _handleSignOut() => _googleSignIn.disconnect();
 
+  Future<void> _fetchCalendars() async {
+    final authHeaders = await _googleSignIn.currentUser?.authHeaders;
+    if (authHeaders == null) {
+      print('Missing auth headers'); // ignore: avoid_print
+      return;
+    }
+    final client = authenticatedClient(Client(), AccessCredentials.fromHeaders(authHeaders));
+    final calendarApi = google_calendar.CalendarApi(client);
+    final calendarList = await calendarApi.calendarList.list();
+    setState(() {
+      _calendars = calendarList.items;
+    });
+  }
+
+  Widget _buildBody(){
+    final GoogleSignInAccount? user = _currentUser;
+    if (user == null){
+      return Center(
+        child: ElevatedButton(
+          onPressed: handleSignIn,
+          child: const Text('Sign in with Google'),
+        ),
+      )
+    } else {
+      if (_calendars == null){
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      } else {
+        return ListView.builder(
+          itemCount: _calendars!.length,
+          itemBuilder: (BuildContext context, int index){
+            final calendar = _calendars![index];
+            return ListTile(
+              title: Text(calendar.summary ?? ''),
+              subtitle: Text(calendar.id ?? ''),
+            );
+          },
+        );  
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +110,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
         ),
         body: ConstrainedBox(
           constraints: const BoxConstraints.expand(),
-          child: const Text('Google Calendars'),
+          child: _buildBody(),
         ));
   }
 }
