@@ -47,9 +47,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Form on pressed
-  void _formOnPressed() {
+  void _formOnPressed(String calendarType) {
     if (_formKey.currentState!.validate()) {
       print('Form is valid');
+      if (calendarType == 'google') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GoogleCalendar(messageTemplate: _messageController.text),
+          ),
+        );        
+      } else if (calendarType == 'outlook') {
+        // Outlook Calendar
+        print('Outlook Calendar');
+      }
+    } else {
+      print('Form is invalid');
     }
   }
 
@@ -70,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 controller: _messageController,
                 decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 5,
-                validator: _formTextValidator(value, 'Please enter a message'),
+                validator: _formTextValidator(value, 'Please enter a message. Use "[day]" and "[hour]" symbols to add dynamic text to the message.'),
               ),
               TextFormField(
                 controller: _confirmationTextController,
@@ -84,14 +97,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _formOnPressed()
+                onPressed: () => _formOnPressed('google'),
                 child: [
                   const Icon(FontAwesomeIcons.google),
                   const Text('   Google'),
                 ],
               ),
               ElevatedButton(
-                onPressed: _formOnPressed(),
+                onPressed: () => _formOnPressed('outlook'),
                 child: [
                   const Icon(FontAwesomeIcons.microsoft),
                   const Text('   Outlook'),
