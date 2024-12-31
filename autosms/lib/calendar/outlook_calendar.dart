@@ -29,7 +29,6 @@ final class MsalAuthService{
       redirectUri: Environment.msalAadAndroidRedirectUri,
     );
     final appleConfig = AppleConfig(
-      authority: Environment.aadIosAuthority,
       authorityType: authorityType,
       broker: broker,
     );
