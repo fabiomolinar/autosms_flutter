@@ -5,8 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'calendar.dart';
-import '../sms_manager.dart';
-import '../utils.dart' show MySimpleDialog;
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(  
   scopes: <String>[google_calendar.CalendarApi.calendarScope],
@@ -22,10 +20,9 @@ class GoogleCalendar extends StatefulWidget {
 }
 
 /// The state of the main widget.
-class GoogleCalendarState extends State<GoogleCalendar> {
+class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
   GoogleSignInAccount? _currentUser;
   List<google_calendar.CalendarListEntry>? _calendars;
-  List<CalendarEvent>? _events;
   
   @override
   void initState() {
@@ -36,23 +33,25 @@ class GoogleCalendarState extends State<GoogleCalendar> {
         _currentUser = account;
       });
       if (account != null) {
-        _fetchCalendars();
+        fetchCalendars();
       }
     });
     // Try to sign in silently.
     _googleSignIn.signInSilently();
-  }
+  }  
 
+  @override
   bool isSignedIn() {
     return _currentUser != null;
   }
 
+  @override
   Future<bool> handleSignIn() async {
     try {
       await _googleSignIn.signIn();
       final GoogleSignInAccount? user = _currentUser;
         if (user != null) {
-          _fetchCalendars();
+          fetchCalendars();
           return true;
         } else {
           return false;
@@ -65,7 +64,8 @@ class GoogleCalendarState extends State<GoogleCalendar> {
 
   // Future<void> _handleSignOut() => _googleSignIn.disconnect(); // NOT USED.
 
-  Future<void> _fetchCalendars() async {
+  @override
+  Future<void> fetchCalendars() async {
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
     assert(client != null, 'Authenticated client missing!');
     final calendarApi = google_calendar.CalendarApi(client!);
@@ -75,19 +75,20 @@ class GoogleCalendarState extends State<GoogleCalendar> {
     });
   }
 
-  Future<void> _fetchEvents(String calendarId) async {
+  @override
+  Future<void> fetchEvents(String calendarId) async {
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
     assert(client != null, 'Authenticated client missing!');
     final calendarApi = google_calendar.CalendarApi(client!);
     final now = DateTime.now();
     final tomorrow = now.add(Duration(days: 1));
-    final events = await calendarApi.events.list(
+    final eventsResult = await calendarApi.events.list(
       calendarId,
       timeMin: now.toUtc(),
       timeMax: tomorrow.toUtc(),
     );
 
-    _events = events.items?.where((event) => event.start?.dateTime != null).map((event) {
+    events = eventsResult.items?.where((event) => event.start?.dateTime != null).map((event) {
       return CalendarEvent(
         id: event.id!,
         summary: event.summary ?? '',
@@ -96,32 +97,14 @@ class GoogleCalendarState extends State<GoogleCalendar> {
         calendarType: CalendarType(name: 'Google', calendarInstance: this),
       );
     }).toList() ?? [];
-
-    List<SMS> smsList = [];
-    for (var event in _events!) {
-      String? phoneNumber = event.findPhoneNumber();
-      if (phoneNumber != null) {
-        String message = event.createMessage(widget.messageTemplate);
-        smsList.add(SMS(telephoneNumber: phoneNumber, message: message));
-      }
+    
+    if (events!.isNotEmpty){
+      sendSMS(events!, widget.messageTemplate);
     }
+  } 
 
-    if (smsList.isNotEmpty) {
-      await sendAllSMS(smsList);
-      var smsCount = smsList.length;
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => MySimpleDialog(message: '$smsCount SMS messages were sent.'),
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => MySimpleDialog(message: '0 SMS messages were sent.'),
-      );
-    }
-  }
-
-  Widget _buildBody(){
+  @override
+  Widget buildBody(){
     final GoogleSignInAccount? user = _currentUser;
     if (user == null){
       return Center(
@@ -143,7 +126,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
             return ListTile(
               title: Text(calendar.summary ?? ''),
               subtitle: Text(calendar.id ?? ''),
-              onTap: () => _fetchEvents(calendar.id!),
+              onTap: () => fetchEvents(calendar.id!),
             );
           },
         );  
@@ -159,7 +142,7 @@ class GoogleCalendarState extends State<GoogleCalendar> {
         ),
         body: ConstrainedBox(
           constraints: const BoxConstraints.expand(),
-          child: _buildBody(),
+          child: buildBody(),
         ));
   }
 }

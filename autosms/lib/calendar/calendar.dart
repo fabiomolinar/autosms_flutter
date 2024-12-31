@@ -1,5 +1,42 @@
 import 'dart:core';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import '../sms_manager.dart';
+import '../utils.dart' show MySimpleDialog;
+
+abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
+  List<CalendarEvent>? events;
+
+  bool isSignedIn();
+  Future<bool> handleSignIn();
+  Future<void> fetchCalendars();
+  Future<void> fetchEvents(String calendarId);
+  Future<void> sendSMS(List<CalendarEvent> events, String messageTemplate) async {
+    List<SMS> smsList = [];
+    for (var event in events) {
+      String? phoneNumber = event.findPhoneNumber();
+      if (phoneNumber != null) {
+        String message = event.createMessage(messageTemplate);
+        smsList.add(SMS(telephoneNumber: phoneNumber, message: message));
+      }
+    }
+
+    if (smsList.isNotEmpty) {
+      await sendAllSMS(smsList);
+      var smsCount = smsList.length;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => MySimpleDialog(message: '$smsCount SMS messages were sent.'),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => MySimpleDialog(message: '0 SMS messages were sent.'),
+      );
+    }
+  }
+  Widget buildBody();
+}
 
 class CalendarType {
   final String name;
