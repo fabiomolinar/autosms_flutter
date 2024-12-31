@@ -40,6 +40,7 @@ dependencies:
   googleapis: ^13.2.0
   googleapis_auth: ^1.6.0  
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
+  msal_auth: ^3.1.0
   microsoft_graph_api: ^0.0.7
   another_telephony: ^0.3.0
 
