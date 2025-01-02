@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar/google_calendar.dart';
 
 void main() {
@@ -39,6 +40,28 @@ class _MyHomePageState extends State<MyHomePage> {
   final _confirmationTextController = TextEditingController();
   final _appendTextController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _messageController.text = prefs.getString('message') ?? '';
+      _confirmationTextController.text = prefs.getString('confirmationText') ?? '';
+      _appendTextController.text = prefs.getString('appendText') ?? '';
+    });
+  }
+
+  Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('message', _messageController.text);
+    prefs.setString('confirmationText', _confirmationTextController.text);
+    prefs.setString('appendText', _appendTextController.text);
+  }
+
   // Form text validator
   String? _formTextValidator(String? value, String errorMessage) {
     if (value == null || value.isEmpty) {
@@ -50,7 +73,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // Form on pressed
   void _formOnPressed(String calendarType) {
     if (_formKey.currentState!.validate()) {
-      print('Form is valid');
+      // Save configuration to shared preferences
+      _savePreferences();
       if (calendarType == 'google') {
         Navigator.push(
           context,

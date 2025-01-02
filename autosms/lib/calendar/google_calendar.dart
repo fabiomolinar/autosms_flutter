@@ -65,7 +65,13 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     }
   }
 
-  // Future<void> _handleSignOut() => _googleSignIn.disconnect(); // NOT USED.
+  Future<void> _handleSignOut() async {
+    await _googleSignIn.signOut();
+    setState(() {
+      _currentUser = null;
+      _calendars = null;
+    });
+  } 
 
   @override
   Future<void> fetchCalendars() async {
@@ -127,17 +133,29 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
           child: CircularProgressIndicator(),
         );
       } else {
-        return ListView.builder(
-          itemCount: _calendars!.length,
-          itemBuilder: (BuildContext context, int index){
-            final calendar = _calendars![index];
-            return ListTile(
-              title: Text(calendar.summary ?? ''),
-              subtitle: Text(calendar.id ?? ''),
-              onTap: () => fetchEvents(calendar.id!),
-            );
-          },
-        );  
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _calendars!.length,
+                itemBuilder: (BuildContext context, int index){
+                  final calendar = _calendars![index];
+                  return ListTile(
+                    title: Text(calendar.summary ?? ''),
+                    subtitle: Text(calendar.id ?? ''),
+                    onTap: () => fetchEvents(calendar.id!),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0), 
+              child: ElevatedButton(
+                onPressed: _handleSignOut, child: const Text('Sign Out'),
+              )
+            )
+          ],
+        );
       }
     }
   }

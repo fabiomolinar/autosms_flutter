@@ -43,6 +43,7 @@ dependencies:
   msal_auth: ^3.1.0
   microsoft_graph_api: ^0.0.7
   another_telephony: ^0.3.0
+  shared_preferences: ^2.3.5
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.2
