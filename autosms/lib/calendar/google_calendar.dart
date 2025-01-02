@@ -47,15 +47,17 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
 
   @override
   Future<bool> handleSignIn() async {
-    try {
-      await _googleSignIn.signIn();
-      final GoogleSignInAccount? user = _currentUser;
-        if (user != null) {
-          fetchCalendars();
-          return true;
-        } else {
-          return false;
-        }
+    try {      
+      final GoogleSignInAccount? user = await _googleSignIn.signIn();      
+      if (user != null) {
+        print("Sign in successful."); // ignore: avoid_print
+        _currentUser = user;          
+        fetchCalendars();
+        return true;
+      } else {
+        print("Sign in failed."); // ignore: avoid_print
+        return false;
+      }
     } catch (error) {
       print(error); // ignore: avoid_print
       return false;
