@@ -75,7 +75,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     }
   }
 
-  Future<void> _handleSignOut() async {
+  Future<void> handleSignOut() async {
     await _googleSignIn.signOut();
     setState(() {
       _currentUser = null;
@@ -94,14 +94,13 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     });
   }
 
-  @override
-  Future<void> fetchEvents(String calendarId) async {
+  Future<List<CalendarEvent>?> _getTomorrowsEvents(calendarId) async {
     _selectedCalendarId = calendarId;
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
     assert(client != null, 'Authenticated client missing!');
     final calendarApi = google_calendar.CalendarApi(client!);
     final now = DateTime.now();
-    final tomorrow = now.add(Duration(days: 1));
+    final tomorrow = DateTime(now.year, now.month, now.day + 1, 23, 59, 59); // End of the next day
     final eventsResult = await calendarApi.events.list(
       calendarId,
       timeMin: now.toUtc(),
@@ -117,7 +116,12 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
         calendarType: CalendarType(name: 'Google', calendarInstance: this),
       );
     }).toList() ?? [];
-    
+    return events;
+  }
+
+  @override
+  Future<void> fetchEvents(String calendarId) async {
+    events = await _getTomorrowsEvents(calendarId);
     if (events!.isNotEmpty){
       sendSMS(events!, widget.messageTemplate);
       // Save last time sent
@@ -148,10 +152,19 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
       } else {
         updatedTitle = "$appendText ${googleEvent.summary!}";
       }
-      
+
       googleEvent.summary = updatedTitle;
       await calendarApi.events.update(googleEvent, _selectedCalendarId, event.id);
     }
+  }
+
+  @override
+  Future<void> verifySMS(String calendarId) async {
+    events = await _getTomorrowsEvents(calendarId);
+    final prefs = await SharedPreferences.getInstance();
+    final String? lastTimeSent = prefs.getString(_lastTimeSentKey);
+    // TODO: Implement verification logic
+    throw UnimplementedError();
   }
 
   @override
@@ -179,7 +192,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
                   final calendar = _calendars![index];
                   return ListTile(
                     title: Text(calendar.summary ?? ''),
-                    onTap: () => fetchEvents(calendar.id!),
+                    onTap: () => showCalendarOptionsDialog(calendar.id!),
                   );
                 },
               ),
@@ -187,7 +200,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20.0), 
               child: ElevatedButton(
-                onPressed: _handleSignOut, child: const Text('Sign Out'),
+                onPressed: handleSignOut, child: const Text('Sign Out'),
               )
             )
           ],

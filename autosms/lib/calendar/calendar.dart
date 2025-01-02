@@ -9,9 +9,11 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
 
   bool isSignedIn();
   Future<bool> handleSignIn();
+  Future<void> handleSignOut();
   Future<void> fetchCalendars();
   Future<void> fetchEvents(String calendarId);
   Future<void> updateEvents(List<CalendarEvent> events, String appendText);
+  Future<void> verifySMS(String calendarId);
   Future<void> sendSMS(List<CalendarEvent> events, String messageTemplate) async {
     List<SMS> smsList = [];
     for (var event in events) {
@@ -35,6 +37,36 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
         builder: (BuildContext context) => MySimpleDialog(message: '0 SMS messages were sent.'),
       );
     }
+  }
+  // ignore: unused_element
+  void showCalendarOptionsDialog(String calendarId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select an Option'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  fetchEvents(calendarId);
+                },
+                child: const Text('Send SMS'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  verifySMS(calendarId);
+                },
+                child: const Text('Verify SMS'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
   Widget buildBody();
 }

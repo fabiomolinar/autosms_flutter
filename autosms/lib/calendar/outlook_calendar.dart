@@ -162,7 +162,13 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
     }    
   }
   
-  // Future<void> _handleSignOut() => MsalAuthService.instance.signOut();
+  Future<void> handleSignOut() async {
+    await MsalAuthService.instance.signOut();
+    setState(() {
+      _authResult = null;
+      _calendars = null;
+    });
+  } 
 
   @override
   Future<void> fetchCalendars() async {
@@ -204,6 +210,12 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
   }
 
   @override
+  Future<void> verifySMS(String calendarId) async {
+    // Implement the verify SMS functionality here
+    throw UnimplementedError();
+  }
+
+  @override
   Widget buildBody(){
     final AuthenticationResult? authResult = _authResult;
     if (authResult == null){
@@ -219,17 +231,28 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
           child: CircularProgressIndicator(),
         );
       } else {
-        return ListView.builder(
-          itemCount: _calendars!.length,
-          itemBuilder: (BuildContext context, int index){
-            final calendar = _calendars![index];
-            return ListTile(
-              title: Text(calendar.name),
-              subtitle: Text(calendar.id),
-              onTap: () => fetchEvents(calendar.id),
-            );
-          },
-        );  
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _calendars!.length,
+                itemBuilder: (BuildContext context, int index){
+                  final calendar = _calendars![index];
+                  return ListTile(
+                    title: Text(calendar.name),
+                    onTap: () => showCalendarOptionsDialog(calendar.id),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0), 
+              child: ElevatedButton(
+                onPressed: handleSignOut, child: const Text('Sign Out'),
+              )
+            )
+          ],
+        );
       }
     }
   }
