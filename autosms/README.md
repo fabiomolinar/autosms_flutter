@@ -4,6 +4,8 @@ A automatic SMS sender/receiver and calendar reader Flutter project.
 
 ## Build and release on Android
 
+To build the project, run `flutter build appbundle`.
+
 ### Icons
 
 Run the following commands to set up the icons. Review the flutter icon configuration section (`flutter_launcher_icons`) in the `pubspec.yaml` file if anything need to be updated.
