@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'calendar.dart';
+import '../utils.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(  
   scopes: <String>[google_calendar.CalendarApi.calendarScope],
@@ -102,6 +103,11 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     
     if (events!.isNotEmpty){
       sendSMS(events!, widget.messageTemplate);
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => MySimpleDialog(message: 'No events with phone numbers found.'),
+      );
     }
   } 
 

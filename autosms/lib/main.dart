@@ -82,19 +82,19 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextFormField(
                 controller: _messageController,
-                decoration: const InputDecoration(labelText: 'Message'),
+                decoration: const InputDecoration(labelText: 'Message. Special: [day], [hour].'),
                 maxLines: 5,
-                validator: (value) => _formTextValidator(value, 'Please enter a message. Use "[day]" and "[hour]" symbols to add dynamic text to the message.'),
+                validator: (value) => _formTextValidator(value, 'Please enter a message.'),
               ),
               TextFormField(
                 controller: _confirmationTextController,
                 decoration: const InputDecoration(labelText: 'Confirmation Text'),
-                validator: (value) => _formTextValidator(value, 'Please enter confirmation text'),
+                validator: (value) => _formTextValidator(value, 'Please enter confirmation text.'),
               ),
               TextFormField(
                 controller: _appendTextController,
                 decoration: const InputDecoration(labelText: 'Text to Append'),
-                validator: (value) => _formTextValidator(value, 'Please enter text to append to event'),
+                validator: (value) => _formTextValidator(value, 'Please enter text to append to event.'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
