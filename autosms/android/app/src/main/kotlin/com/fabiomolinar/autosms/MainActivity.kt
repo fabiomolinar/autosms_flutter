@@ -1,4 +1,4 @@
-package com.example.autosms
+package com.fabiomolinar.autosms
 
 import io.flutter.embedding.android.FlutterActivity
 

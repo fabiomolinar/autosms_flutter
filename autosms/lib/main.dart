@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const title = 'Automated SMS';
+    const title = 'AutoSMS';
     return MaterialApp(
       title: title,
       theme: ThemeData(
