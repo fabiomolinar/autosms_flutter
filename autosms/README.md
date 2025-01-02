@@ -12,3 +12,9 @@ Run the following commands to set up the icons. Review the flutter icon configur
 flutter pub get
 dart run flutter_launcher_icons
 ```
+
+## Other notes
+
+### keytool
+
+To use keytool, I need to call it from where it was installed: `"C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe"`. A command would look like this: `"C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore ./upload-keystore.jks -alias upload`.
