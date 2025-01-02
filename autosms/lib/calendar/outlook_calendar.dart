@@ -198,6 +198,12 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
   } 
 
   @override
+  Future<void> updateEvents(List<my_calendar.CalendarEvent> events, String appendText) async {
+    // TODO: Implement this method.
+    throw UnimplementedError();
+  }
+
+  @override
   Widget buildBody(){
     final AuthenticationResult? authResult = _authResult;
     if (authResult == null){

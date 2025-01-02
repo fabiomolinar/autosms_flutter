@@ -11,6 +11,7 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
   Future<bool> handleSignIn();
   Future<void> fetchCalendars();
   Future<void> fetchEvents(String calendarId);
+  Future<void> updateEvents(List<CalendarEvent> events, String appendText);
   Future<void> sendSMS(List<CalendarEvent> events, String messageTemplate) async {
     List<SMS> smsList = [];
     for (var event in events) {

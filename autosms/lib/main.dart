@@ -38,7 +38,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
   final _confirmationTextController = TextEditingController();
-  final _appendTextController = TextEditingController();
+  final _declineTextController = TextEditingController();
+  final _appendConfirmedTextController = TextEditingController();
+  final _appendSentTextController = TextEditingController();
+  final _appendDeclinedTextController = TextEditingController();
 
   @override
   void initState() {
@@ -50,8 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _messageController.text = prefs.getString('message') ?? '';
-      _confirmationTextController.text = prefs.getString('confirmationText') ?? '';
-      _appendTextController.text = prefs.getString('appendText') ?? '';
+      _confirmationTextController.text = prefs.getString('confirmationText') ?? 'TAK';
+      _declineTextController.text = prefs.getString('declineText') ?? 'NIE';
+      _appendConfirmedTextController.text = prefs.getString('appendConfirmed') ?? '[Potw.]';
+      _appendSentTextController.text = prefs.getString('appendSent') ?? '[Wysy.]';
+      _appendDeclinedTextController.text = prefs.getString('appendDeclined') ?? '[Odrz.]';
     });
   }
 
@@ -59,7 +65,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('message', _messageController.text);
     prefs.setString('confirmationText', _confirmationTextController.text);
-    prefs.setString('appendText', _appendTextController.text);
+    prefs.setString('declineText', _declineTextController.text);
+    prefs.setString('appendConfirmed', _appendConfirmedTextController.text);        
+    prefs.setString('appendSent', _appendSentTextController.text);
+    prefs.setString('appendDeclined', _appendDeclinedTextController.text);
   }
 
   // Form text validator
@@ -79,7 +88,12 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => GoogleCalendar(messageTemplate: _messageController.text),
+            builder: (context) => GoogleCalendar(
+              messageTemplate: _messageController.text,
+              appendSentText: _appendSentTextController.text,
+              appendConfirmedText: _appendConfirmedTextController.text, 
+              appendDeclinedText: _appendDeclinedTextController.text
+            ),
           ),
         );        
       } else if (calendarType == 'outlook') {
@@ -113,12 +127,27 @@ class _MyHomePageState extends State<MyHomePage> {
               TextFormField(
                 controller: _confirmationTextController,
                 decoration: const InputDecoration(labelText: 'Confirmation Text'),
-                validator: (value) => _formTextValidator(value, 'Please enter confirmation text.'),
+                validator: (value) => _formTextValidator(value, 'Please enter expected answer to accept appoitnment.'),
               ),
               TextFormField(
-                controller: _appendTextController,
-                decoration: const InputDecoration(labelText: 'Text to Append'),
-                validator: (value) => _formTextValidator(value, 'Please enter text to append to event.'),
+                controller: _declineTextController,
+                decoration: const InputDecoration(labelText: 'Decline Text'),
+                validator: (value) => _formTextValidator(value, 'Please enter expected answer to decline appointment.'),
+              ),
+              TextFormField(
+                controller: _appendSentTextController,
+                decoration: const InputDecoration(labelText: 'Sent Message Append Text'),
+                validator: (value) => _formTextValidator(value, 'Please enter text to append to event with SMS sent.'),
+              ),
+              TextFormField(
+                controller: _appendConfirmedTextController,
+                decoration: const InputDecoration(labelText: 'Confirmed Appointment Append Text'),
+                validator: (value) => _formTextValidator(value, 'Please enter text to append to confirmed event.'),
+              ),              
+              TextFormField(
+                controller: _appendDeclinedTextController,
+                decoration: const InputDecoration(labelText: 'Declined Appointment Append Text'),
+                validator: (value) => _formTextValidator(value, 'Please enter text to append to declined event.'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

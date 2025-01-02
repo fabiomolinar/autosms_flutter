@@ -4,6 +4,7 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar.dart';
 import '../utils.dart';
 
@@ -13,8 +14,15 @@ final GoogleSignIn _googleSignIn = GoogleSignIn(
 
 class GoogleCalendar extends StatefulWidget {
   final String messageTemplate;
+  final String appendSentText;
+  final String appendConfirmedText;
+  final String appendDeclinedText;
 
-  const GoogleCalendar({super.key, required this.messageTemplate});
+  const GoogleCalendar({
+    super.key, required this.messageTemplate,
+    required this.appendSentText, required this.appendConfirmedText, 
+    required this.appendDeclinedText,
+  });
 
   @override
   State createState() => GoogleCalendarState();
@@ -24,6 +32,8 @@ class GoogleCalendar extends StatefulWidget {
 class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
   GoogleSignInAccount? _currentUser;
   List<google_calendar.CalendarListEntry>? _calendars;
+  String _selectedCalendarId = '';
+  final String _lastTimeSentKey = 'lastTimeSent';
   
   @override
   void initState() {
@@ -86,6 +96,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
 
   @override
   Future<void> fetchEvents(String calendarId) async {
+    _selectedCalendarId = calendarId;
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
     assert(client != null, 'Authenticated client missing!');
     final calendarApi = google_calendar.CalendarApi(client!);
@@ -109,6 +120,11 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     
     if (events!.isNotEmpty){
       sendSMS(events!, widget.messageTemplate);
+      // Save last time sent
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString(_lastTimeSentKey, DateTime.now().toString());
+      // Update events title      
+      updateEvents(events!, widget.appendSentText);
     } else {
       showDialog(
         context: context,
@@ -116,6 +132,27 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
       );
     }
   } 
+
+  @override
+  Future<void> updateEvents(List<CalendarEvent> events, String appendText) async {
+    final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
+    final calendarApi = google_calendar.CalendarApi(client!);
+    final regex = RegExp(r'^\[.*?\]');
+
+    for (var event in events) {
+      var googleEvent = await calendarApi.events.get(_selectedCalendarId, event.id);
+      String updatedTitle;
+      
+      if (regex.hasMatch(googleEvent.summary!)) {
+        updatedTitle = googleEvent.summary!.replaceFirst(regex, appendText);
+      } else {
+        updatedTitle = "$appendText ${googleEvent.summary!}";
+      }
+      
+      googleEvent.summary = updatedTitle;
+      await calendarApi.events.update(googleEvent, _selectedCalendarId, event.id);
+    }
+  }
 
   @override
   Widget buildBody(){
@@ -142,7 +179,6 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
                   final calendar = _calendars![index];
                   return ListTile(
                     title: Text(calendar.summary ?? ''),
-                    subtitle: Text(calendar.id ?? ''),
                     onTap: () => fetchEvents(calendar.id!),
                   );
                 },
