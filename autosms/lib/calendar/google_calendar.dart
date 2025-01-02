@@ -75,6 +75,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     }
   }
 
+  @override
   Future<void> handleSignOut() async {
     await _googleSignIn.signOut();
     setState(() {
