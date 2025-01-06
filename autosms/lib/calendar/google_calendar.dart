@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:autosms/sms_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -17,11 +18,14 @@ class GoogleCalendar extends StatefulWidget {
   final String appendSentText;
   final String appendConfirmedText;
   final String appendDeclinedText;
+  final String confirmationText;
+  final String declineText;
 
   const GoogleCalendar({
     super.key, required this.messageTemplate,
     required this.appendSentText, required this.appendConfirmedText, 
-    required this.appendDeclinedText,
+    required this.appendDeclinedText, required this.confirmationText,
+    required this.declineText,
   });
 
   @override
@@ -131,10 +135,12 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
       // Update events title      
       updateEvents(events!, widget.appendSentText);
     } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => MySimpleDialog(message: 'No events with phone numbers found.'),
-      );
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => MySimpleDialog(message: 'No events found.'),
+        );
+      }
     }
   } 
 
@@ -164,8 +170,27 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     events = await _getTomorrowsEvents(calendarId);
     final prefs = await SharedPreferences.getInstance();
     final String? lastTimeSent = prefs.getString(_lastTimeSentKey);
-    // TODO: Implement verification logic
-    throw UnimplementedError();
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
+    final lastTimeSentDate = DateTime.parse(lastTimeSent ?? today.toString());
+    final from = lastTimeSentDate.isAfter(today) ? lastTimeSentDate : today;
+    if (context.mounted && events!.isNotEmpty) {
+      final smsList = await readAllSMS(context, from, DateTime.now());
+      for (var event in events!){        
+        final phoneNumber = event.findPhoneNumber();
+        if (phoneNumber != null){
+          for (var sms in smsList.toList()){
+            if (sms.telephoneNumber == phoneNumber){
+              final smsMsg = sms.message.toLowerCase();
+              if (smsMsg == widget.confirmationText.toLowerCase()){
+                updateEvents([event], widget.appendConfirmedText);
+              } else if (smsMsg == widget.declineText.toLowerCase()){
+                updateEvents([event], widget.appendDeclinedText);
+              }
+            }
+          }
+        }      
+      }    
+    }
   }
 
   @override

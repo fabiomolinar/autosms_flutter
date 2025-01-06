@@ -92,7 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
               messageTemplate: _messageController.text,
               appendSentText: _appendSentTextController.text,
               appendConfirmedText: _appendConfirmedTextController.text, 
-              appendDeclinedText: _appendDeclinedTextController.text
+              appendDeclinedText: _appendDeclinedTextController.text,
+              confirmationText: _confirmationTextController.text,
+              declineText: _declineTextController.text,
             ),
           ),
         );        
