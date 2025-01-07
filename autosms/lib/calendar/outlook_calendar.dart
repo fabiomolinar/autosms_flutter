@@ -210,7 +210,7 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
   }
 
   @override
-  Future<void> verifySMS(String calendarId) async {
+  Future<void> verifySMSResponse(String calendarId) async {
     // Implement the verify SMS functionality here
     throw UnimplementedError();
   }

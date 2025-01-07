@@ -21,3 +21,7 @@ class MySimpleDialog extends StatelessWidget {
     );
   }
 }
+
+bool hasPunctuation(String text) {
+  return RegExp(r'[^\w\s]').hasMatch(text);
+}

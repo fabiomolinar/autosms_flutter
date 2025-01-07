@@ -166,7 +166,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
   }
 
   @override
-  Future<void> verifySMS(String calendarId) async {
+  Future<void> verifySMSResponse(String calendarId) async {
     events = await _getTomorrowsEvents(calendarId);
     final prefs = await SharedPreferences.getInstance();
     final String? lastTimeSent = prefs.getString(_lastTimeSentKey);
@@ -176,14 +176,17 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     if (context.mounted && events!.isNotEmpty) {
       final smsList = await readAllSMS(context, from, DateTime.now());
       for (var event in events!){        
-        final phoneNumber = event.findPhoneNumber();
-        if (phoneNumber != null){
+        final eventPhoneNumber = event.findPhoneNumber();
+        if (eventPhoneNumber != null){
           for (var sms in smsList.toList()){
-            if (sms.telephoneNumber == phoneNumber){
-              final smsMsg = sms.message.toLowerCase();
-              if (smsMsg == widget.confirmationText.toLowerCase()){
+            if (sms.telephoneNumber == eventPhoneNumber){
+                var smsMsg = sms.message.toLowerCase().trim();
+                if (!hasPunctuation(widget.confirmationText) && !hasPunctuation(widget.declineText)) {
+                    smsMsg = smsMsg.replaceAll(RegExp(r'[^\w\s]'), '');
+                }
+              if (smsMsg == widget.confirmationText.toLowerCase().trim()){
                 updateEvents([event], widget.appendConfirmedText);
-              } else if (smsMsg == widget.declineText.toLowerCase()){
+              } else if (smsMsg == widget.declineText.toLowerCase().trim()){
                 updateEvents([event], widget.appendDeclinedText);
               }
             }

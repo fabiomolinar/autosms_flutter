@@ -3,10 +3,31 @@ import 'package:another_telephony/telephony.dart';
 import 'utils.dart' show MySimpleDialog;
 
 class SMS {
-  final String telephoneNumber;
+  String _telephoneNumber;
   final String message;
 
-  SMS({required this.telephoneNumber, required this.message});
+  SMS({required String telephoneNumber, required this.message})
+      : _telephoneNumber = _formatPhoneNumber(telephoneNumber);
+
+  String get telephoneNumber => _telephoneNumber;
+
+  set telephoneNumber(String telephoneNumber) {
+    _telephoneNumber = _formatPhoneNumber(telephoneNumber);
+  }
+
+  static String _formatPhoneNumber(String number) {
+    // Remove all spaces and new lines
+    number = number.replaceAll(RegExp(r'\s+'), '');
+    // Ensure the number starts with +48
+    if (!number.startsWith('+48')) {
+      if (number.startsWith('48')) {
+        number = '+$number';
+      } else {
+        number = '+48$number';
+      }
+    }
+    return number;
+  }
 }
 
 Future<void> sendAllSMS(List<SMS> messages) async {

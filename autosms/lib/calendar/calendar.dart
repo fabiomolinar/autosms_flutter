@@ -13,7 +13,7 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
   Future<void> fetchCalendars();
   Future<void> fetchEvents(String calendarId);
   Future<void> updateEvents(List<CalendarEvent> events, String appendText);
-  Future<void> verifySMS(String calendarId);
+  Future<void> verifySMSResponse(String calendarId);
   Future<void> sendSMS(List<CalendarEvent> events, String messageTemplate) async {
     List<SMS> smsList = [];
     for (var event in events) {
@@ -58,7 +58,7 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  verifySMS(calendarId);
+                  verifySMSResponse(calendarId);
                 },
                 child: const Text('Verify SMS'),
               ),
@@ -106,7 +106,7 @@ class CalendarEvent {
           phoneNumber = '+48$phoneNumber';
         }
       }
-      return phoneNumber;
+      return phoneNumber.replaceAll(RegExp(r'\s+'), '');
     }
     return null;
   }
