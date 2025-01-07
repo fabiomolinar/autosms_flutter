@@ -150,6 +150,10 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     final calendarApi = google_calendar.CalendarApi(client!);
     final regex = RegExp(r'^\[.*?\]');
 
+    if (!appendText.startsWith('[') && !appendText.endsWith(']')) {
+      appendText = '[$appendText]';
+    }
+
     for (var event in events) {
       var googleEvent = await calendarApi.events.get(_selectedCalendarId, event.id);
       String updatedTitle;
