@@ -54,9 +54,9 @@ Future<List<SMS>> readAllSMS(BuildContext context, DateTime from, DateTime to) a
     List<SmsMessage> messages = await telephony.getInboxSms(
       columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
       filter: SmsFilter.where(SmsColumn.DATE)
-          .greaterThanOrEqualTo(from.toIso8601String())
+          .greaterThanOrEqualTo(from.millisecondsSinceEpoch.toString())
           .and(SmsColumn.DATE)
-          .lessThanOrEqualTo(to.toIso8601String()),
+          .lessThanOrEqualTo(to.millisecondsSinceEpoch.toString()),
     );
     return messages.map((sms) {
       return SMS(

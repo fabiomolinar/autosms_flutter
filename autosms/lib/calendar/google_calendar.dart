@@ -178,6 +178,8 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     final lastTimeSentDate = DateTime.parse(lastTimeSent ?? today.toString());
     final from = lastTimeSentDate.isAfter(today) ? lastTimeSentDate : today;
     if (context.mounted && events!.isNotEmpty) {
+      var confirmedEvents = 0;
+      var declinedEvents = 0;
       final smsList = await readAllSMS(context, from, DateTime.now());
       for (var event in events!){        
         final eventPhoneNumber = event.findPhoneNumber();
@@ -190,13 +192,24 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
                 }
               if (smsMsg == widget.confirmationText.toLowerCase().trim()){
                 updateEvents([event], widget.appendConfirmedText);
+                confirmedEvents++;
               } else if (smsMsg == widget.declineText.toLowerCase().trim()){
                 updateEvents([event], widget.appendDeclinedText);
+                declinedEvents++;
               }
             }
           }
+          
         }      
-      }    
+      }
+      showDialog(
+          context: context,
+            builder: (BuildContext context) => MySimpleDialog(message: "${events!.length} events were verified.\n"
+              "${smsList.length} SMS messages were read.\n"
+              "$confirmedEvents events confirmed.\n"
+              "$declinedEvents events declined.\n"
+              "${events!.length - confirmedEvents - declinedEvents} events not recognized."),
+        );    
     }
   }
 

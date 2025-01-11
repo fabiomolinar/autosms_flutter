@@ -162,6 +162,7 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
     }    
   }
   
+  @override
   Future<void> handleSignOut() async {
     await MsalAuthService.instance.signOut();
     setState(() {
