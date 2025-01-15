@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'calendar.dart' show BaseCalendarState, CalendarType;
@@ -40,7 +41,7 @@ final class MsalAuthService{
       );  
       return (true, null);
     } on MsalException catch (e) {
-      print('Create public client application failed => $e'); // ignore: avoid_print
+      log('Create public client application failed => $e'); // ignore: avoid_print
       return (false, e);
     }
   }
@@ -51,10 +52,10 @@ final class MsalAuthService{
         scopes: scopes,
         prompt: prompt,
       );
-      print('Acquire token => ${result?.toJson()}');  // ignore: avoid_print
+      log('Acquire token => ${result?.toJson()}');  // ignore: avoid_print
       return (result, null);
     } on MsalException catch (e) {
-      print('Acquire token failed => $e');  // ignore: avoid_print
+      log('Acquire token failed => $e');  // ignore: avoid_print
       return (null, e);
     }
   }
@@ -64,10 +65,10 @@ final class MsalAuthService{
       final result = await singleAccountPca?.acquireTokenSilent(
         scopes: scopes,
       );
-      print('Acquire token silent => ${result?.toJson()}'); // ignore: avoid_print
+      log('Acquire token silent => ${result?.toJson()}'); // ignore: avoid_print
       return (result, null);
     } on MsalException catch (e) {
-      print('Acquire token silent failed => $e'); // ignore: avoid_print
+      log('Acquire token silent failed => $e'); // ignore: avoid_print
 
       // If it is a UI required exception, try to acquire token interactively.
       if (e is MsalUiRequiredException) {
@@ -80,10 +81,10 @@ final class MsalAuthService{
   Future<(Account?, MsalException?)> getCurrentAccount() async {
     try {
       final result = await singleAccountPca?.currentAccount;
-      print('Current account => ${result?.toJson()}');  // ignore: avoid_print
+      log('Current account => ${result?.toJson()}');  // ignore: avoid_print
       return (result, null);
     } on MsalException catch (e) {
-      print('Current account failed => $e');  // ignore: avoid_print
+      log('Current account failed => $e');  // ignore: avoid_print
       return (null, e);
     }
   }
@@ -91,10 +92,10 @@ final class MsalAuthService{
   Future<(bool, MsalException?)> signOut() async {
     try {
       final result = await singleAccountPca?.signOut();
-      print('Sign out => $result'); // ignore: avoid_print
+      log('Sign out => $result'); // ignore: avoid_print
       return (true, null);
     } on MsalException catch (e) {
-      print('Sign out failed => $e'); // ignore: avoid_print
+      log('Sign out failed => $e'); // ignore: avoid_print
       return (false, e);
     }
   }
@@ -138,7 +139,7 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
       _authResult = authResult;
       fetchCalendars();
     } else {
-      print('Failed to acquire token silently => $authException'); // ignore: avoid_print
+      log('Failed to acquire token silently => $authException'); // ignore: avoid_print
     }
   }
 
@@ -153,11 +154,11 @@ class OutlookCalendarState extends BaseCalendarState<OutlookCalendar> {
         fetchCalendars();
         return true;
       } else {
-        print('Failed to acquire token => $authException'); // ignore: avoid_print
+        log('Failed to acquire token => $authException'); // ignore: avoid_print
         return false;
       }
     } else {
-      print('Failed to create public client application => $pcaException'); // ignore: avoid_print
+      log('Failed to create public client application => $pcaException'); // ignore: avoid_print
       return false;
     }    
   }

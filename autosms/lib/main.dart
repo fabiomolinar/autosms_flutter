@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,10 +102,10 @@ class _MyHomePageState extends State<MyHomePage> {
         );        
       } else if (calendarType == 'outlook') {
         // Outlook Calendar
-        print('Outlook Calendar');
+        log('Outlook Calendar');
       }
     } else {
-      print('Form is invalid');
+      log('Form is invalid');
     }
   }
 

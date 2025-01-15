@@ -25,7 +25,7 @@ abstract class BaseCalendarState<T extends StatefulWidget> extends State<T> {
     }
 
     if (smsList.isNotEmpty) {
-      await sendAllSMS(smsList);
+      await sendAllSMS(smsList, context);
       var smsCount = smsList.length;
       showDialog(
         context: context,

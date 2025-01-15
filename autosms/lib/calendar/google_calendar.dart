@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:autosms/sms_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -65,16 +66,16 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     try {      
       final GoogleSignInAccount? user = await _googleSignIn.signIn();      
       if (user != null) {
-        print("Sign in successful."); // ignore: avoid_print
+        log("Sign in successful."); // ignore: avoid_print
         _currentUser = user;          
         fetchCalendars();
         return true;
       } else {
-        print("Sign in failed."); // ignore: avoid_print
+        log("Sign in failed."); // ignore: avoid_print
         return false;
       }
     } catch (error) {
-      print(error); // ignore: avoid_print
+      log(error.toString()); // ignore: avoid_print
       return false;
     }
   }
@@ -180,7 +181,7 @@ class GoogleCalendarState extends BaseCalendarState<GoogleCalendar> {
     if (context.mounted && events!.isNotEmpty) {
       var confirmedEvents = 0;
       var declinedEvents = 0;
-      final smsList = await readAllSMS(context, from, DateTime.now());
+      final smsList = await readAllSMS(from, DateTime.now(), context);
       for (var event in events!){        
         final eventPhoneNumber = event.findPhoneNumber();
         if (eventPhoneNumber != null){
